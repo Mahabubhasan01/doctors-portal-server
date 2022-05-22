@@ -108,7 +108,7 @@ async function run() {
       const users = await usersCollections.find().toArray();
       res.send(users);
     });
-    app.put("/users/admin/:email", verifyJWT, async (req, res) => {
+    app.put("/user/admin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const requester = req.decoded.email;
       const requesterAccount = await usersCollections.findOne({email: requester});
