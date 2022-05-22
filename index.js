@@ -85,6 +85,14 @@ async function run() {
 
       res.send(services);
     });
+
+    app.get('/admin/:email',async(req,res)=>{
+            const email = req.params.email;
+            const user= await usersCollections.findOne({email:email});
+            const isAdmin = user.role=== 'admin';
+            res.send({admin:isAdmin});
+    })
+  
     app.get("/patient", verifyJWT, async (req, res) => {
       const patient = req.query.body;
       const decoded = req.decoded.email;
@@ -92,15 +100,29 @@ async function run() {
         const query = { patient: patient };
         const result = await bookingCollections.find(query).toArray();
         res.send(result);
-      }
-      else{
-          res.status(403).send({message:'forbidden'})
+      } else {
+        res.status(403).send({ message: "forbidden" });
       }
     });
-    app.get('/user',async(req,res)=>{
-        const users = await usersCollections.find().toArray();
-        res.send(users)
-    })
+    app.get("/user", verifyJWT, async (req, res) => {
+      const users = await usersCollections.find().toArray();
+      res.send(users);
+    });
+    app.put("/users/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const requester = req.decoded.email;
+      const requesterAccount = await usersCollections.findOne({email: requester});
+      if (requesterAccount.role === "admin") {
+        const filter = { email: email };
+        const updateDoc = {
+          $set: { role: "admin" },
+        };
+        const result = await usersCollections.updateOne(filter, updateDoc);
+        res.send(result);
+      };
+      res.status(403).send({ message: "fuck life" });
+    });
+// ============================================================
     app.put("/users/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -114,9 +136,11 @@ async function run() {
         options,
         updateDoc
       );
-      const token = jwt.sign({ email: email }, process.env.TOKEN, {
-        expiresIn: "1h",
-      });
+      const token = jwt.sign(
+        { email: email },
+        process.env.TOKEN
+        /*  , {expiresIn: "1h",} */
+      );
       res.send({ result, accessToken: token });
     });
   } finally {
