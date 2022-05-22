@@ -97,7 +97,7 @@ async function run() {
       const patient = req.query.body;
       const decoded = req.decoded.email;
       if (patient === decoded) {
-        const query = { patient: patient };
+        const query = { patient: patient }
         const result = await bookingCollections.find(query).toArray();
         res.send(result);
       } else {
